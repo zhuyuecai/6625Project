@@ -28,8 +28,7 @@ public class secIndex {
 				    /////computing exact byte location of the tuple/////////////
 				    //position --;
 				    position = position * 100;
-				    ////////////////////////////////////////////////////////////
-				    System.out.println(position);
+				    ////////////////////////////////////////////////////////////				  
 				    file.seek(position);
 				    byte[] bytes = new byte[100];//reading the tuple in byte array
 				    file.read(bytes, 0, 100);
@@ -40,7 +39,7 @@ public class secIndex {
 						  raw = raw + c;
 				      }
 					//formatting the raw tuple string for display
-					result = raw.substring(0, 9) + "\t" + raw.substring(9, 24) + "\t" + raw.substring(24, 39) + "\t" + raw.substring(39, 41) + "\t" + raw.substring(41, 51) + "\t" + raw.substring(51, 99);
+					result =position+ "\t"+raw.substring(0, 9) + "\t" + raw.substring(9, 24) + "\t" + raw.substring(24, 39) + "\t" + raw.substring(39, 41) + "\t" + raw.substring(41, 51) + "\t" + raw.substring(51, 99);
 				    return result;//returning the formatted result string
 		 	}
 	/////////////////////////////////////////////////////////////////////////////
@@ -56,7 +55,7 @@ public class secIndex {
             String iPath = root + "temp/" + key+ ".txt";
             File file = new File(iPath);
             //String iPath = "e:\\index\\" + String.valueOf(sKey)+ ".txt";//SSD
-            ePos = sPos+Count.get(key);
+            ePos = sPos+Count.get(key)-1;
             String va = sPos + " "+ePos;
      	    Pointers.put(key, va);// note it in the hash map that will server
      	    							// as second level index
@@ -135,82 +134,28 @@ public class secIndex {
 		// computing and displaying Average salary from hashMaps Count and Salary
 		System.out.println("Average Salary : [$ " + Salary.get(Age)/Count.get(Age) + "] \r\n");
 	}
-	/////////////////////////////////////////////////////////////////////
-	static void displayTuples(int Age) throws IOException //take integer Age to search and display records
-	{	//by first loading the respective pointers file from folder in a list
-	
-	    String points = Pointers.get(Age);// getting position reference in first level index file
+	static void displayTuples(int Age) throws IOException{
+		String iPath = root + "temp/" + Age+ ".txt";
+        File file = new File(iPath);
+        try (Scanner scanner = new Scanner(file);) 
+	    {
+	    	int counterT = 0;
+	        //while (scanner.hasNextLong()) 
+	        while (counterT<10) 
+	        {
+                long ww= scanner.nextLong();
+                System.out.println(getTuple(ww));
+                ++counterT;
 
-	    String[] sePoint = points.split(" ");
-	    int sPoint = Integer.parseInt(sePoint[0]);// start position
-	    int ePoint = Integer.parseInt(sePoint[1]);// end position
-        
-
-	    //////////////////////////////////////////////////////////////////
-		String filePath = root+"index/index1.txt";
-	    //String filePath = "e:\\index\\index1.txt";//SSD
-	   // String result = "";
-	    //random access the first level index to read the required corresponding bytes//////
-		RandomAccessFile file = new RandomAccessFile(filePath, "r");
-		//String tuple;
-		//file.seek(sPoint);
-	    //file.read(bytes, 0, listSize);// read in a byte array
-	    //file.close();
-	    System.out.println("SIN      	First Name	Last Name     	Age	Yearly Income	Address");
-	    file.seek(sPoint *10);
-	    for (int i=sPoint;i<ePoint;++i){
-	    	long index = Long.valueOf(file.readLine()).longValue();
-	    	System.out.println(getTuple(index));
-	    	
-	    }
-	    
-	    
-   /* //////////////////////////////////////////////////////////////////
-    for(int i = 0; i < listSize; i++)//converting byte array to string
-	  {
-		  char c = (char)bytes[i];   
-		  result = result + c;
-      }
-    //////////////////////////////////////////////////////////////////
-
-    List<Long> list = new ArrayList<>();
-    //////////////////////////////////////////////////////////////////
-    try (Scanner scanner = new Scanner(result);) 
-    {// now reading the result string in a list of long
-        while (scanner.hasNextLong()) 
-        {	      
-            list.add(scanner.nextLong());//filling the list
-        }
-    } 
-    catch (Exception e) 
-    {
-        e.printStackTrace();
-    }
-	//////////////////////////////////////////////////////////////////////
-    System.out.println("SIN      	First Name	Last Name     	Age	Yearly Income	Address");
-    String tuple = "";
-	
-    for (int i=0; i < list.size(); i++) // loop the loaded list 
-    									//to get and display tuples
-	{
-		try 
-		{
-			tuple = getTuple(list.get(i));//function call getTuple to get tuple 
-											// as string from data file
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		System.out.println(tuple); // displaying the obtained formatted tuple
-	}*/
+	        }
+	        scanner.close();// read the pointers in a list
 	    } 
-
-		//////////////////////////////////////////////////////////////////////
-
-	   
-		
-
+	    catch (Exception e) 
+	    {
+	        e.printStackTrace();
+	    }
+	}
+	
 	
 	
 	///////////////////////////////////////////////////////////////
@@ -260,7 +205,7 @@ public class secIndex {
 		  File iKey = new File(root+"/index/key.txt");
 		  //File iKey = new File("e:\\index\\key.txt");//SSD
 		  BufferedReader reader = new BufferedReader(new FileReader(iKey));
-	      String line = reader.readLine();
+	      String line;
 	      while ( (line = reader.readLine() ) != null) 
 	      {
 	  
@@ -269,11 +214,12 @@ public class secIndex {
 	    	  long count=Long.valueOf(kVals[1]).longValue();
 	    	  long salary=Long.valueOf(kVals[2]).longValue();
 	    	  
-	    	  String points = kVals[3] + " " + kVals[4];
+	    	  //String points = kVals[3] + " " + kVals[4];
 	    	  //////////////////////////////////////////
-	    	  Pointers.put(key, points);
+	    	  //Pointers.put(key, points);
 	    	  Salary.put(key, salary);
 	    	  Count.put(key, count);
+	    	  System.out.println("load" + key);
 	      }
 	      reader.close();
 	      /////////////////////////////////////////////////////////////////////
@@ -340,7 +286,7 @@ public class secIndex {
 		    
 		    bufferedReader.close();
 			//merge intermediary first level index files and save in one file
-			oneIndex();
+			//oneIndex();
 			//save hash map keys[second level index file] and analytics from hash maps
 			saveKeys();
 		
@@ -406,9 +352,9 @@ public class secIndex {
 			System.out.println("Creating Index on atribute AGE . . .");
 			sTime = System.currentTimeMillis();// note start time
 			makeIndex(filePath);//Function to take file path as string and
-								//create index files for the given file
+			loadIndex();				//create index files for the given file
 			///////////////////////////////////////////////////////
-			loadIndex();
+			//loadIndex();
 			eTime = System.currentTimeMillis();//note end time
 			System.out.println("Index Created in : " + (eTime - sTime) + " ms");
 			break;
@@ -441,6 +387,7 @@ public class secIndex {
 		//////////////////////////////////////////////////////////////
 			if (Count.containsKey(Age))//check in hash map if key(age) exist
 			{
+			System.out.println(Pointers.get(Age));	
 			avSal(Age);//call for avSal function to compute and display desired
 					   //analytics >> count & average salary for this age group
 			sTime = System.currentTimeMillis();// note start time
