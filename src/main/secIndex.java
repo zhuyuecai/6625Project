@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 public class secIndex {
     static String root = "/home/winnerzhu/github/6625Project/";
-    static String filename = "person_fnl.txt";
+    static String filename = "person_fnl.txt";//"person.txt";//
 	static Map <Integer, String> Pointers = new HashMap <>();
 	// this serves as second level index contains reference position
 	 // to actual pointers for that key to be loaded when needed, 
@@ -29,6 +29,7 @@ public class secIndex {
 				    //position --;
 				    position = position * 100;
 				    ////////////////////////////////////////////////////////////
+				    System.out.println(position);
 				    file.seek(position);
 				    byte[] bytes = new byte[100];//reading the tuple in byte array
 				    file.read(bytes, 0, 100);
@@ -48,59 +49,43 @@ public class secIndex {
 		
 		long sPos = 0;
 		long ePos = 0;
-		Writer wr;
+		try{
+		Writer wr = new FileWriter(root+"/index/index1.txt", true);
         for (int key = 18;key<99;++key) 
         {// loop through any hash map for each key
             String iPath = root + "temp/" + key+ ".txt";
+            File file = new File(iPath);
             //String iPath = "e:\\index\\" + String.valueOf(sKey)+ ".txt";//SSD
-            File file = new File(iPath);// index file corresponding the key
-    	    long fileSize = file.length();// take its file size
-    	    System.out.println(fileSize);
-    	    String sPoint = "";
-    	    ePos = sPos + fileSize;
-    	    // compute the start and end position according to file size
-    	   	sPoint = String.valueOf(sPos) + " " + String.valueOf(ePos);
-     	    Pointers.put(key, sPoint);// note it in the hash map that will server
+            ePos = sPos+Count.get(key);
+            String va = sPos + " "+ePos;
+     	    Pointers.put(key, va);// note it in the hash map that will server
      	    							// as second level index
-     	    sPos = ePos;//next time start position will start from previous end position
+     	    //sPos = ePos;//next time start position will start from previous end position
     	    //////////////////////////////////////////////////////////////
-    	    List <Long> list = new ArrayList<>();
     	    //////////////////////////////////////////////////////////////
     	    try (Scanner scanner = new Scanner(file);) 
     	    {
-    	    	wr = new FileWriter(root+"/index/index1.txt", true);
+    	    	
     	        while (scanner.hasNextLong()) 
     	        {
-    	            //list.add(scanner.nextLong());//filling the list
-    	            wr.write(String.valueOf(scanner.nextLong()));
-        			wr.write(" ");
+                    long ww= scanner.nextLong();
+    	            wr.write(String.valueOf(ww));
+        			wr.write("\n");
+
     	        }	// read the pointers in a list
     	    } 
     	    catch (Exception e) 
     	    {
     	        e.printStackTrace();
     	    }
-    	    file.delete();// once file content has been loaded we can delete the
-    	    				// intermediary first level index files
+    	    //file.delete();// once file content has been loaded we can delete the
+    	    sPos=ePos;				// intermediary first level index files
             ///////////////////////////////////////////////////////////////
-/*    		try{
-    			wr = new FileWriter(root+"/index/index1.txt", true);
-    		   	    
-    	    for (int i=0; i < list.size(); i++)
-    	    {
-    	     	// write to a new file which will hold indexes for all keys
-        			//wr = new FileWriter("e:\\index\\index1.txt", true);//SSD
-    	    		wr.write(String.valueOf(list.get(i)));
-        			wr.write(" ");
-        		
-    	    }		wr.close();
-            	
-    		}
-        		catch (IOException e) 
-        		{
-        			e.printStackTrace();
-        		}*/
     	    }
+        wr.close();
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
         }
 	
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +104,9 @@ public class secIndex {
             long count = entry.getValue();
             long salary = Salary.get(key);
             String points = Pointers.get(key);
+          
             String kLine = String.valueOf(key) + " " + String.valueOf(count) + " " + String.valueOf(salary) + " " + points;
+           
            ////////////////
     	//	try 
     		//{
@@ -151,63 +138,80 @@ public class secIndex {
 	/////////////////////////////////////////////////////////////////////
 	static void displayTuples(int Age) throws IOException //take integer Age to search and display records
 	{	//by first loading the respective pointers file from folder in a list
+	
 	    String points = Pointers.get(Age);// getting position reference in first level index file
+
 	    String[] sePoint = points.split(" ");
 	    int sPoint = Integer.parseInt(sePoint[0]);// start position
 	    int ePoint = Integer.parseInt(sePoint[1]);// end position
-	    int listSize = ePoint - sPoint; // calculate list size
-	    byte[] bytes = new byte[listSize];
+        
+
 	    //////////////////////////////////////////////////////////////////
 		String filePath = root+"index/index1.txt";
 	    //String filePath = "e:\\index\\index1.txt";//SSD
-	    String result = "";
+	   // String result = "";
 	    //random access the first level index to read the required corresponding bytes//////
 		RandomAccessFile file = new RandomAccessFile(filePath, "r");
-			
-			file.seek(sPoint);
-		    file.read(bytes, 0, listSize);// read in a byte array
-		    file.close();
-    
-	    //////////////////////////////////////////////////////////////////
-	    for(int i = 0; i < listSize; i++)//converting byte array to string
-		  {
-			  char c = (char)bytes[i];   
-			  result = result + c;
-	      }
-	    //////////////////////////////////////////////////////////////////
-
-	    List<Long> list = new ArrayList<>();
-	    //////////////////////////////////////////////////////////////////
-	    try (Scanner scanner = new Scanner(result);) 
-	    {// now reading the result string in a list of long
-	        while (scanner.hasNextLong()) 
-	        {	      
-	            list.add(scanner.nextLong());//filling the list
-	        }
-	    } 
-	    catch (Exception e) 
-	    {
-	        e.printStackTrace();
-	    }
-		//////////////////////////////////////////////////////////////////////
+		//String tuple;
+		//file.seek(sPoint);
+	    //file.read(bytes, 0, listSize);// read in a byte array
+	    //file.close();
 	    System.out.println("SIN      	First Name	Last Name     	Age	Yearly Income	Address");
-	    String tuple = "";
-		
-	    for (int i=0; i < list.size(); i++) // loop the loaded list 
-	    									//to get and display tuples
+	    file.seek(sPoint *10);
+	    for (int i=sPoint;i<ePoint;++i){
+	    	long index = Long.valueOf(file.readLine()).longValue();
+	    	System.out.println(getTuple(index));
+	    	
+	    }
+	    
+	    
+   /* //////////////////////////////////////////////////////////////////
+    for(int i = 0; i < listSize; i++)//converting byte array to string
+	  {
+		  char c = (char)bytes[i];   
+		  result = result + c;
+      }
+    //////////////////////////////////////////////////////////////////
+
+    List<Long> list = new ArrayList<>();
+    //////////////////////////////////////////////////////////////////
+    try (Scanner scanner = new Scanner(result);) 
+    {// now reading the result string in a list of long
+        while (scanner.hasNextLong()) 
+        {	      
+            list.add(scanner.nextLong());//filling the list
+        }
+    } 
+    catch (Exception e) 
+    {
+        e.printStackTrace();
+    }
+	//////////////////////////////////////////////////////////////////////
+    System.out.println("SIN      	First Name	Last Name     	Age	Yearly Income	Address");
+    String tuple = "";
+	
+    for (int i=0; i < list.size(); i++) // loop the loaded list 
+    									//to get and display tuples
+	{
+		try 
 		{
-			try 
-			{
-				tuple = getTuple(list.get(i));//function call getTuple to get tuple 
-												// as string from data file
-			} 
-			catch (IOException e) 
-			{
-				e.printStackTrace();
-			}
-			System.out.println(tuple); // displaying the obtained formatted tuple
+			tuple = getTuple(list.get(i));//function call getTuple to get tuple 
+											// as string from data file
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
 		}
-	}
+		System.out.println(tuple); // displaying the obtained formatted tuple
+	}*/
+	    } 
+
+		//////////////////////////////////////////////////////////////////////
+
+	   
+		
+
+	
 	
 	///////////////////////////////////////////////////////////////
 	static void keyMap(int Age, long cSal, long tCount)
@@ -215,7 +219,7 @@ public class secIndex {
 	//function keyMap takes key::Age, Salary sum of corresponding tuples, and their Count 
 		if(Count.containsKey(Age))//if key already exists increase count by 1
 
-		    Count.put(Age,Count.get(Age));
+		    Count.put(Age,Count.get(Age)+1);
 		else// if new key then add key and add value >> count i.e. tCount
 		{
 			Count.put(Age, tCount);
@@ -240,7 +244,7 @@ public class secIndex {
 		String sal = tup.substring(42, 51);//reading salary from the tuple
 		int iAge = Integer.parseInt(age);//parsing age to integer
 		long cSal = Integer.parseInt(sal);//parsing salary to long
-		String sLine = String.valueOf(line);//parsing line number to string
+		//String sLine = String.valueOf(line);//parsing line number to string
 		long cTmp = 1;
 		///////////////////////////////////////////////////////////
 		keyMap(iAge, cSal, cTmp);//calling keyMap to fill hash maps
@@ -256,29 +260,24 @@ public class secIndex {
 		  File iKey = new File(root+"/index/key.txt");
 		  //File iKey = new File("e:\\index\\key.txt");//SSD
 		  BufferedReader reader = new BufferedReader(new FileReader(iKey));
-	      List<String> lines = new ArrayList<String>();
 	      String line = reader.readLine();
-	      while (line != null) 
+	      while ( (line = reader.readLine() ) != null) 
 	      {
-	          lines.add(line);
-	          line = reader.readLine();
-	      }
-	      reader.close();
-	      /////////////////////////////////////////////////////////////////////
-	      for (int i=0; i < lines.size(); i++) // loop the list to extract
-	    	  // key _ count _ salary and loading into the hash maps
-			{
-	    	  String sVals = lines.get(i);
-	    	  String[] kVals = sVals.split(" ");
+	  
+	    	  String[] kVals = line.split(" ");
 	    	  int key = Integer.parseInt(kVals[0]);
-	    	  long count = Integer.parseInt(kVals[1]);
-	    	  long salary = Integer.parseInt(kVals[2]);
+	    	  long count=Long.valueOf(kVals[1]).longValue();
+	    	  long salary=Long.valueOf(kVals[2]).longValue();
+	    	  
 	    	  String points = kVals[3] + " " + kVals[4];
 	    	  //////////////////////////////////////////
 	    	  Pointers.put(key, points);
 	    	  Salary.put(key, salary);
 	    	  Count.put(key, count);
-			}
+	      }
+	      reader.close();
+	      /////////////////////////////////////////////////////////////////////
+
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
@@ -290,8 +289,6 @@ public class secIndex {
 		BufferedReader bufferedReader = null;
 		BufferedWriter[] bufferedWriter = new BufferedWriter[81];
 		File file = new File(path);
-		System.out.println(file.canRead());
-		System.out.println(file.exists());
 		try{
 			bufferedReader = new BufferedReader(new FileReader(file), block);
 			//bufferedWriter = new BufferedWriter(new FileWriter("C:\\Users\\Nehal\\Desktop\\COMP6521_Project\\temp\\me2.txt", true), block);
@@ -364,24 +361,27 @@ public class secIndex {
 	
 	}
 	////////////////////////////////////////////////////////////////////////////
-	static int getAge()
+	static int getAge(Scanner choice)
 	{
 		////////////Getting user input and returning Age as integer
 		System.out.println("\r\nEnter AGE in range 18 _ 99 Inclusive:");
-		Scanner choice = new Scanner(System.in);
+
 		int age = choice.nextInt();
+
 		return age;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	static int loadMake()
+	static int loadMake(Scanner choice)
 	{   
 		System.out.println("YOU CAN LOAD AN EXISTING INDEX FILE OR CREATE A NEW ONE.");
 		////////////Getting user choice 1/2 to load index or create new
 		System.out.println("1. Enter '1' TO CREATE NEW INDEX.");
 		System.out.println("2. Enter '2' TO LOAD EXISTING INDEX.");
-		Scanner choice = new Scanner(System.in);
+
 		int choix = choice.nextInt();
+
 		return choix;
+		
 	}
 	///////////////////////////////////////////////////////////////////////////
 	public static void main(String[] args) throws IOException 
@@ -396,7 +396,8 @@ public class secIndex {
 		long sTime = 0;
 		long eTime = 0;
 		////////////////////////////////////////////////////////////////////////////////
-		int ch = loadMake();//user choice to load existing index files
+		Scanner choice = new Scanner(System.in);
+		int ch = loadMake(choice);//user choice to load existing index files
 							//or make new index on data file
 		////////////////////////////////////////////////////////////////////////////////
 		switch(ch)
@@ -407,6 +408,7 @@ public class secIndex {
 			makeIndex(filePath);//Function to take file path as string and
 								//create index files for the given file
 			///////////////////////////////////////////////////////
+			loadIndex();
 			eTime = System.currentTimeMillis();//note end time
 			System.out.println("Index Created in : " + (eTime - sTime) + " ms");
 			break;
@@ -435,7 +437,7 @@ public class secIndex {
 		///////////////////////////////////////////////////////////////////////////
 		while(true)
 		{
-		int Age = getAge();//Function to get integer Age as user input
+		int Age = getAge(choice);//Function to get integer Age as user input
 		//////////////////////////////////////////////////////////////
 			if (Count.containsKey(Age))//check in hash map if key(age) exist
 			{
@@ -450,5 +452,6 @@ public class secIndex {
 				System.out.println("No record found for Age : " + Age);
 		}		// if key not found display message
 		///////////////////////////////////////////////////////////////////////////
+		
 	}
 }
