@@ -25,8 +25,7 @@ public class secIndex {
 					RandomAccessFile file = new RandomAccessFile(filePath, "r");
 				    String raw = "";
 				    String result = "";
-				    /////computing exact byte location of the tuple/////////////
-				    //position --;
+
 				    position = position * 100;
 				    ////////////////////////////////////////////////////////////				  
 				    file.seek(position);
@@ -58,10 +57,7 @@ public class secIndex {
             ePos = sPos+Count.get(key)-1;
             String va = sPos + " "+ePos;
      	    Pointers.put(key, va);// note it in the hash map that will server
-     	    							// as second level index
-     	    //sPos = ePos;//next time start position will start from previous end position
-    	    //////////////////////////////////////////////////////////////
-    	    //////////////////////////////////////////////////////////////
+
     	    try (Scanner scanner = new Scanner(file);) 
     	    {
     	    	
@@ -104,16 +100,7 @@ public class secIndex {
             long salary = Salary.get(key);
             String points = Pointers.get(key);
           
-            String kLine = String.valueOf(key) + " " + String.valueOf(count) + " " + String.valueOf(salary) + " " + points;
-           
-           ////////////////
-    	//	try 
-    		//{
-    			//writing the kLine string to the index file key.txt
-    			// kLine will contain Key >> its count / corresponding Salary sum
-    			// and position reference points for actual pointers that are in a separate file
-    			//wr = new FileWriter("e:\\index\\key.txt", true);//SSD
-    			
+            String kLine = String.valueOf(key) + " " + String.valueOf(count) + " " + String.valueOf(salary) + " " + points;          
     			wr.write(kLine);
     			wr.write("\r\n");
         }	wr.close();
@@ -139,13 +126,13 @@ public class secIndex {
         File file = new File(iPath);
         try (Scanner scanner = new Scanner(file);) 
 	    {
-	    	int counterT = 0;
-	        //while (scanner.hasNextLong()) 
-	        while (counterT<10) 
+	    	//int counterT = 0;
+	        while (scanner.hasNextLong()) 
+	        //while (counterT<10) 
 	        {
                 long ww= scanner.nextLong();
                 System.out.println(getTuple(ww));
-                ++counterT;
+                //++counterT;
 
 	        }
 	        scanner.close();// read the pointers in a list
